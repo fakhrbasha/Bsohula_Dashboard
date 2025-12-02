@@ -23,17 +23,19 @@ export default function LoginForm() {
     defaultValues: {
       email: '',
       password: '',
-      userType: 'admin',
     },
   });
 
   const [login, { isLoading }] = useLoginMutation();
 
   const handleSubmit = async (data: loginSchemaFields) => {
-    handleReqWithToaster('جاري تسجيل الدخول', async () => {
+    try {
       await login(data).unwrap();
+      console.log('Login success, redirecting...');
       router.push('/');
-    });
+    } catch (error) {
+      console.log('Login failed', error);
+    }
   };
 
   return (

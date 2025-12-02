@@ -69,6 +69,7 @@ export const baseApi = createApi({
     baseQuery: baseQueryWithInterceptor,
     tagTypes: [
         "Location",
+        "Category"
     ],
     endpoints: () => ({}),
 });

@@ -111,13 +111,37 @@ export function Sidebar({ className }: SidebarProps) {
       title: 'الموقع',
       icon: LocateIcon,
       href: '/location',
-      isActive: pathname === '/location',
+      isActive: pathname.startsWith('/location'),
+      subItems: [
+        {
+          title: 'الموقع',
+          href: '/location',
+          isActive: pathname === '/location',
+        },
+        {
+          title: 'أضافة موقع',
+          href: '/location/add',
+          isActive: pathname.startsWith('/location/add'),
+        },
+      ],
     },
     {
       title: 'المرافق',
       icon: BookUser,
       href: '/facility',
-      isActive: pathname === '/facility',
+      isActive: pathname.startsWith('/facility'),
+      subItems: [
+        {
+          title: 'المرافق',
+          href: '/facility',
+          isActive: pathname === '/facility',
+        },
+        {
+          title: 'أضافة مرفق',
+          href: '/facility/add',
+          isActive: pathname.startsWith('/facility/add'),
+        },
+      ],
     },
   ];
 
