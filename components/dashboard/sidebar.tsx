@@ -36,6 +36,7 @@ import {
   LocateIcon,
   FlaskConical,
   BookUser,
+  TagIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -140,6 +141,24 @@ export function Sidebar({ className }: SidebarProps) {
           title: 'أضافة مرفق',
           href: '/facility/add',
           isActive: pathname.startsWith('/facility/add'),
+        },
+      ],
+    },
+    {
+      title: 'العلامات',
+      icon: TagIcon,
+      href: '/tags',
+      isActive: pathname.startsWith('/tags'),
+      subItems: [
+        {
+          title: 'العلامات',
+          href: '/tags',
+          isActive: pathname === '/tags',
+        },
+        {
+          title: 'أضافة علامة',
+          href: '/tags/add',
+          isActive: pathname.startsWith('/tags/add'),
         },
       ],
     },
