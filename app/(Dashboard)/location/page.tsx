@@ -64,6 +64,37 @@ export default function LocationsPage() {
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const searchValue = filterValue.toLowerCase();
+      const location = row.original as Location;
+
+      // Search in Arabic and English names
+      const nameAr = location.name?.ar?.toLowerCase() || '';
+      const nameEn = location.name?.en?.toLowerCase() || '';
+
+      // Search in descriptions
+      const descAr = location.description?.ar?.toLowerCase() || '';
+      const descEn = location.description?.en?.toLowerCase() || '';
+
+      // Search in types
+      const typeAr = location.type?.ar?.toLowerCase() || '';
+      const typeEn = location.type?.en?.toLowerCase() || '';
+
+      // Search in tags
+      const tagsMatch =
+        location.tags?.some((tag) => tag.toLowerCase().includes(searchValue)) ||
+        false;
+
+      return (
+        nameAr.includes(searchValue) ||
+        nameEn.includes(searchValue) ||
+        descAr.includes(searchValue) ||
+        descEn.includes(searchValue) ||
+        typeAr.includes(searchValue) ||
+        typeEn.includes(searchValue) ||
+        tagsMatch
+      );
+    },
     state: {
       sorting,
       columnFilters,

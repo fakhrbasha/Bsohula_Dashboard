@@ -63,6 +63,23 @@ export default function CategoriesPage() {
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const searchValue = filterValue.toLowerCase();
+      const category = row.original as Category;
+
+      // Search in Arabic and English names
+      const nameAr = category.name?.ar?.toLowerCase() || '';
+      const nameEn = category.name?.en?.toLowerCase() || '';
+      const descAr = category.description?.ar?.toLowerCase() || '';
+      const descEn = category.description?.en?.toLowerCase() || '';
+
+      return (
+        nameAr.includes(searchValue) ||
+        nameEn.includes(searchValue) ||
+        descAr.includes(searchValue) ||
+        descEn.includes(searchValue)
+      );
+    },
     state: {
       sorting,
       columnFilters,

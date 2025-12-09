@@ -94,6 +94,29 @@ export default function FacilitiesPage() {
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const searchValue = filterValue.toLowerCase();
+      const facility = row.original as Facility;
+
+      // Search in Arabic and English names
+      const nameAr = facility.name?.ar?.toLowerCase() || '';
+      const nameEn = facility.name?.en?.toLowerCase() || '';
+      const address = facility.address?.toLowerCase() || '';
+      const phone = facility.phone?.toLowerCase() || '';
+
+      // Search in tags
+      const tagsMatch =
+        facility.tags?.some((tag) => tag.toLowerCase().includes(searchValue)) ||
+        false;
+
+      return (
+        nameAr.includes(searchValue) ||
+        nameEn.includes(searchValue) ||
+        address.includes(searchValue) ||
+        phone.includes(searchValue) ||
+        tagsMatch
+      );
+    },
     state: {
       sorting,
       columnFilters,
