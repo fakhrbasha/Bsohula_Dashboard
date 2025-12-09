@@ -70,6 +70,7 @@ export const CategoryApi = baseApi.injectEndpoints({
                 url: "/category",
                 method: "POST",
                 body: data,
+                credentials: "include",
             }),
             invalidatesTags: ["Category"],
         }),

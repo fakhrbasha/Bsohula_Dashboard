@@ -75,6 +75,7 @@ export const LocationApi = baseApi.injectEndpoints({
                 url: "/location",
                 method: "POST",
                 body: data,
+                credentials: "include",
             }),
             invalidatesTags: ["Location"],
         }),
@@ -88,6 +89,7 @@ export const LocationApi = baseApi.injectEndpoints({
                 url: `/location/${id}`,
                 method: "PATCH",
                 body: data,
+                credentials: "include",
             }),
             invalidatesTags: ["Location"],
         }),
@@ -97,6 +99,7 @@ export const LocationApi = baseApi.injectEndpoints({
             query: (id) => ({
                 url: `/location/${id}`,
                 method: "DELETE",
+                credentials: "include",
             }),
             invalidatesTags: ["Location"],
         }),
