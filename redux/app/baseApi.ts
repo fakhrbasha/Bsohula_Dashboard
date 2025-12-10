@@ -14,15 +14,48 @@ export interface SuccessResponse<DataType = any> {
     status: boolean;
 }
 
+// const baseQuery = fetchBaseQuery({
+//     baseUrl: BASE_URL,
+//     prepareHeaders: (headers, { getState }) => {
+//         const token = (getState() as RootState).auth.accessToken;
+//         if (token) headers.set("authorization", `Bearer ${token}`);
+//         // console.log(token);
+//         return headers;
+//     },
+// });
 const baseQuery = fetchBaseQuery({
     baseUrl: BASE_URL,
-    prepareHeaders: (headers, { getState }) => {
-        const token = (getState() as RootState).auth.accessToken;
-        if (token) headers.set("authorization", `Bearer ${token}`);
-        // console.log(token);
+    // credentials: "include",
+    prepareHeaders: (headers) => {
+        const token = localStorage.getItem("accessToken");
+
+        if (token) {
+            headers.set("Authorization", `Bearer ${token}`);
+            console.log(token);
+        }
         return headers;
     },
 });
+
+// function getCookie(name: string): string | null {
+//     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+//     return match ? decodeURIComponent(match[2]) : null;
+// }
+// const baseQuery = fetchBaseQuery({
+//     baseUrl: BASE_URL,
+//     credentials: "include", // مهم لإرسال الكوكيز تلقائيًا
+//     prepareHeaders: (headers) => {
+//         let token = getCookie('zed.token'); // جلب التوكن من الكوكيز
+//         if (token) {
+//             // إزالة علامات الاقتباس إذا موجودة
+//             token = token.replace(/^"|"$/g, "");
+
+//             headers.set("Authorization", `Bearer ${token}`);
+//             console.log(token);
+//         }
+//         return headers;
+//     },
+// });
 
 const baseQueryWithInterceptor: typeof baseQuery = async (
     args,
@@ -73,7 +106,8 @@ export const baseApi = createApi({
         "Category",
         "Tags",
         "Review",
-        "Facilities"
+        "Facilities",
+        "Reviews"
     ],
     endpoints: () => ({}),
 });

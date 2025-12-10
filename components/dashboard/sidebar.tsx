@@ -37,6 +37,7 @@ import {
   FlaskConical,
   BookUser,
   TagIcon,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -159,6 +160,24 @@ export function Sidebar({ className }: SidebarProps) {
           title: 'أضافة علامة',
           href: '/tags/add',
           isActive: pathname.startsWith('/tags/add'),
+        },
+      ],
+    },
+    {
+      title: 'التقييمات',
+      icon: Star,
+      href: '/reviews',
+      isActive: pathname.startsWith('/reviews'),
+      subItems: [
+        {
+          title: 'التقييمات',
+          href: '/reviews',
+          isActive: pathname === '/reviews',
+        },
+        {
+          title: 'أضافة تقييم',
+          href: '/reviews/add',
+          isActive: pathname.startsWith('/reviews/add'),
         },
       ],
     },

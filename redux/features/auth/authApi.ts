@@ -27,6 +27,7 @@ const authApi = baseApi.injectEndpoints({
                     dispatch(setUser(authData));
                     localStorage.setItem("accessToken", authData.accessToken!);
                     localStorage.setItem("user", JSON.stringify(authData.user));
+                    // console.log(authData.accessToken!);
                 } catch (error) {
                     console.log("❌ Login Failed", error);
                 }
