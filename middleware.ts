@@ -4,11 +4,11 @@ import type { NextRequest } from 'next/server';
 // Change to named export 'middleware' instead of default export
 export function middleware(request: NextRequest) {
   // Get the pathname from the URL
-  const path = request.nextUrl.pathname;  
-  
+  const path = request.nextUrl.pathname;
+
   // Define public paths that don't require authentication
   const isPublicPath = path.startsWith('/auth/login');
-  
+
   // Check if user is authenticated by looking for the token cookie
   const token = request.cookies.get('zed.token');
   const isAuthenticated = !!token;

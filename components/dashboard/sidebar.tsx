@@ -38,6 +38,7 @@ import {
   BookUser,
   TagIcon,
   Star,
+  DiamondPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -178,6 +179,24 @@ export function Sidebar({ className }: SidebarProps) {
           title: 'أضافة تقييم',
           href: '/reviews/add',
           isActive: pathname.startsWith('/reviews/add'),
+        },
+      ],
+    },
+    {
+      title: 'العروض',
+      icon: DiamondPlus,
+      href: '/offers',
+      isActive: pathname.startsWith('/offers'),
+      subItems: [
+        {
+          title: 'العروض',
+          href: '/offers',
+          isActive: pathname === '/offers',
+        },
+        {
+          title: 'أضافة عرض',
+          href: '/offers/add',
+          isActive: pathname.startsWith('/offers/add'),
         },
       ],
     },
@@ -324,7 +343,7 @@ export function Sidebar({ className }: SidebarProps) {
                                 className={cn(
                                   'flex items-center text-black/80 gap-2 px-3 py-2 rounded-md transition-colors text-sm',
                                   subItem.isActive
-                                    ? 'bg-primary text-primary-foreground'
+                                    ? 'bg-blue-700 text-primary-foreground'
                                     : 'hover:bg-muted'
                                 )}
                               >

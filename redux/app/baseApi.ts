@@ -14,28 +14,28 @@ export interface SuccessResponse<DataType = any> {
     status: boolean;
 }
 
-// const baseQuery = fetchBaseQuery({
-//     baseUrl: BASE_URL,
-//     prepareHeaders: (headers, { getState }) => {
-//         const token = (getState() as RootState).auth.accessToken;
-//         if (token) headers.set("authorization", `Bearer ${token}`);
-//         // console.log(token);
-//         return headers;
-//     },
-// });
 const baseQuery = fetchBaseQuery({
     baseUrl: BASE_URL,
-    // credentials: "include",
-    prepareHeaders: (headers) => {
-        const token = localStorage.getItem("accessToken");
-
-        if (token) {
-            headers.set("Authorization", `Bearer ${token}`);
-            console.log(token);
-        }
+    prepareHeaders: (headers, { getState }) => {
+        const token = (getState() as RootState).auth.accessToken;
+        if (token) headers.set("authorization", `Bearer ${token}`);
+        // console.log(token);
         return headers;
     },
 });
+// const baseQuery = fetchBaseQuery({
+//     baseUrl: BASE_URL,
+//     // credentials: "include",
+//     prepareHeaders: (headers) => {
+//         const token = localStorage.getItem("accessToken");
+
+//         if (token) {
+//             headers.set("Authorization", `Bearer ${token}`);
+//             console.log(token);
+//         }
+//         return headers;
+//     },
+// });
 
 // function getCookie(name: string): string | null {
 //     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
@@ -106,8 +106,10 @@ export const baseApi = createApi({
         "Category",
         "Tags",
         "Review",
-        "Facilities",
-        "Reviews"
+        "Facility",
+        "Reviews",
+        "Offer"
+
     ],
     endpoints: () => ({}),
 });

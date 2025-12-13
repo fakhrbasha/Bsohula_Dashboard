@@ -8,6 +8,9 @@ import {
   TrendingUp,
   Award,
   Building2,
+  Plus,
+  X,
+  MessageSquare,
 } from 'lucide-react';
 import {
   useReactTable,
@@ -23,6 +26,8 @@ import { useGetFacilitiesQuery } from '@/redux/features/facility/facilityApi';
 import {
   ReviewItem,
   useGetReviewsQuery,
+  useAddReviewMutation,
+  useUpdateReviewMutation,
 } from '@/redux/features/Review/reviewApis';
 import { reviewColumns } from './columns';
 
@@ -31,6 +36,16 @@ export default function ReviewsPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editingReview, setEditingReview] = useState<ReviewItem | null>(null);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+
+  const [formData, setFormData] = useState({
+    facilityId: '',
+    rating: 0,
+    comment: '',
+  });
 
   const { data: facilitiesData, isLoading: loadingFacilities } =
     useGetFacilitiesQuery({
@@ -43,6 +58,9 @@ export default function ReviewsPage() {
     isLoading: loadingReviews,
     error: reviewsError,
   } = useGetReviewsQuery(selectedFacilityId, { skip: !selectedFacilityId });
+
+  const [addReview] = useAddReviewMutation();
+  const [updateReview] = useUpdateReviewMutation();
 
   const facilities = facilitiesData?.data || [];
 
@@ -57,7 +75,8 @@ export default function ReviewsPage() {
       Array.isArray(reviews)
         ? reviews.map((review: ReviewItem) => ({
             ...review,
-            onEdit: () => {},
+            onEdit: (id: string) =>
+              openModal(reviews.find((r: ReviewItem) => r._id === id)),
           }))
         : [],
     [reviews]
@@ -113,6 +132,76 @@ export default function ReviewsPage() {
     setSelectedFacilityId(facilityId);
   };
 
+  const handleSubmit = async () => {
+    try {
+      if (!formData.facilityId) {
+        alert('الرجاء اختيار منشأة');
+        return;
+      }
+      if (formData.rating === 0) {
+        alert('الرجاء اختيار تقييم');
+        return;
+      }
+      if (!formData.comment.trim()) {
+        alert('الرجاء كتابة تعليق');
+        return;
+      }
+
+      if (editingReview && editingReview._id) {
+        await updateReview({
+          id: editingReview._id,
+          data: formData,
+        }).unwrap();
+      } else {
+        await addReview(formData).unwrap();
+      }
+      closeModal();
+    } catch (err) {
+      console.error('خطأ في حفظ التقييم:', err);
+      alert('حدث خطأ في حفظ التقييم');
+    }
+  };
+
+  const openModal = (review?: ReviewItem) => {
+    if (review) {
+      setEditingReview(review);
+
+      // Extract facility ID if it's an object
+      const facilityId =
+        typeof review.facilityId === 'object' && review.facilityId !== null
+          ? (review.facilityId as any)._id
+          : review.facilityId;
+
+      setFormData({
+        facilityId: facilityId || '',
+        rating: review.rating || 0,
+        comment: review.comment || '',
+      });
+      setRating(review.rating || 0);
+    } else {
+      setEditingReview(null);
+      setFormData({
+        facilityId: selectedFacilityId || '',
+        rating: 0,
+        comment: '',
+      });
+      setRating(0);
+    }
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingReview(null);
+    setRating(0);
+    setHoverRating(0);
+  };
+
+  const handleRatingClick = (value: number) => {
+    setRating(value);
+    setFormData({ ...formData, rating: value });
+  };
+
   // Get selected facility details
   const selectedFacility = Array.isArray(facilities)
     ? facilities.find((f: any) => f._id === selectedFacilityId)
@@ -136,13 +225,22 @@ export default function ReviewsPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              تقييمات المنشآت
-            </h1>
-            <p className="text-gray-600">
-              اختر منشأة لعرض تقييماتها والإحصائيات الخاصة بها
-            </p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                تقييمات المنشآت
+              </h1>
+              <p className="text-gray-600">
+                اختر منشأة لعرض تقييماتها والإحصائيات الخاصة بها
+              </p>
+            </div>
+            <button
+              onClick={() => openModal()}
+              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+            >
+              <Plus size={20} />
+              إضافة تقييم جديد
+            </button>
           </div>
 
           {/* Facility Selection */}
@@ -499,6 +597,126 @@ export default function ReviewsPage() {
             </div>
           )}
       </div>
+
+      {/* Add/Edit Review Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-xl z-10">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <MessageSquare size={28} />
+                {editingReview ? 'تعديل التقييم' : 'إضافة تقييم جديد'}
+              </h2>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Facility Selection */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <Building2 size={18} />
+                  المنشأة *
+                </label>
+                <select
+                  required
+                  value={formData.facilityId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, facilityId: e.target.value })
+                  }
+                  disabled={!!editingReview}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                >
+                  <option value="">اختر المنشأة</option>
+                  {Array.isArray(facilities) &&
+                    facilities.map((facility: any) => (
+                      <option key={facility._id} value={facility._id}>
+                        {facility.name?.ar || facility.name?.en || 'غير محدد'}
+                      </option>
+                    ))}
+                </select>
+                {editingReview && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    لا يمكن تغيير المنشأة عند التعديل
+                  </p>
+                )}
+              </div>
+
+              {/* Rating */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                  <Star size={18} className="text-yellow-500" />
+                  التقييم *
+                </label>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => handleRatingClick(value)}
+                      onMouseEnter={() => setHoverRating(value)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="transition-transform hover:scale-110 focus:outline-none"
+                    >
+                      <Star
+                        size={40}
+                        className={`${
+                          value <= (hoverRating || rating)
+                            ? 'text-yellow-400 fill-yellow-400'
+                            : 'text-gray-300'
+                        } transition-colors`}
+                      />
+                    </button>
+                  ))}
+                  <span className="mr-4 text-2xl font-bold text-gray-700">
+                    {rating > 0 ? `${rating}/5` : 'لم يتم التقييم'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Comment */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <MessageSquare size={18} />
+                  التعليق *
+                </label>
+                <textarea
+                  required
+                  value={formData.comment}
+                  onChange={(e) =>
+                    setFormData({ ...formData, comment: e.target.value })
+                  }
+                  rows={6}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  placeholder="شارك تجربتك مع هذه المنشأة..."
+                />
+                <div className="flex justify-between mt-1">
+                  <p className="text-xs text-gray-500">
+                    اكتب تعليقاً مفصلاً عن تجربتك
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formData.comment.length} حرف
+                  </p>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={handleSubmit}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3.5 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-bold shadow-lg"
+                >
+                  {editingReview ? '💾 حفظ التعديلات' : '✨ إضافة التقييم'}
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="flex-1 bg-gray-200 text-gray-700 px-6 py-3.5 rounded-lg hover:bg-gray-300 transition-all font-bold"
+                >
+                  ❌ إلغاء
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

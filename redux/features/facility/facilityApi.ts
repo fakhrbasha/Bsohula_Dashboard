@@ -1,16 +1,66 @@
 import { baseApi, SuccessResponse } from "@/redux/app/baseApi";
 
-export interface FacilityName {
+export interface FacilityResponse {
+    status: boolean;
+    data: Facility[];
+    total: number;
+}
+
+export interface Facility {
+    _id: string;
+    name: Lang;
+    description: Lang;
+    categoryId: string;
+    locationId: string;
+    address: string;
+    phone: string;
+    website: string;
+    opening_hours?: Record<string, any>;
+    tags: Tag[];
+    map_url: string;
+    images?: string[];
+    avgRating: number;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+export interface Tag {
+    _id: string;
+    name: string;
+    displayName: Lang;
+    description: Lang;
+    colorHex: string;
+    icon: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+export interface Lang {
     en: string;
     ar: string;
 }
 
-export interface Facility {
-    _id?: string;
-    name: FacilityName;
-    description?: Record<string, any>;
+export interface CreateFacilityDto {
+    name: Lang;
+    description: Lang;
     categoryId: string;
     locationId: string;
+    address: string;
+    phone: string;
+    website: string;
+    opening_hours?: Record<string, any>;
+    tags?: string[];
+    map_url: string;
+    images?: string[];
+}
+
+export interface UpdateFacilityDto {
+    name?: Lang;
+    description?: Lang;
+    categoryId?: string;
+    locationId?: string;
     address?: string;
     phone?: string;
     website?: string;
@@ -18,77 +68,100 @@ export interface Facility {
     tags?: string[];
     map_url?: string;
     images?: string[];
-    avgRating?: number;
-    createdAt?: string;
-    updatedAt?: string;
-    __v?: number;
-    status?: boolean;
 }
 
-export interface FacilityResponse {
-    status: boolean;
-    data: Facility[];
-    total?: number;
+export interface GetFacilitiesParams {
+    page?: number;
+    limit?: number;
+    search?: string;
+    searchBy?: string;
+    sort?: string;
+    order?: 'asc' | 'desc';
+    categoryId?: string;
+    locationId?: string;
 }
+
+// Make the params parameter properly typed
+type FacilitiesQueryParams = GetFacilitiesParams | void;
 
 export const FacilityApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        // GET /api/facility - all facilities
-        getFacilities: builder.query<SuccessResponse<FacilityResponse>, { page?: number; limit?: number; search?: string; searchBy?: string; sort?: string; order?: string; categoryId?: string; locationId?: string }>({
-            query: ({ page = 1, limit = 10, search, searchBy, sort, order, categoryId, locationId }) => {
-                const params = new URLSearchParams();
-                params.append("page", page.toString());
-                params.append("limit", limit.toString());
-                if (search) params.append("search", search);
-                if (searchBy) params.append("searchBy", searchBy);
-                if (sort) params.append("sort", sort);
-                if (order) params.append("order", order);
-                if (categoryId) params.append("categoryId", categoryId);
-                if (locationId) params.append("locationId", locationId);
-                return `/facility?${params.toString()}`;
+        // GET /api/facility with query params
+        getFacilities: builder.query<SuccessResponse<FacilityResponse>, FacilitiesQueryParams>({
+            query: (params) => {
+                // Handle void case
+                if (!params) {
+                    return '/facility';
+                }
+
+                const queryParams = new URLSearchParams();
+
+                if (params.page !== undefined) queryParams.append('page', params.page.toString());
+                if (params.limit !== undefined) queryParams.append('limit', params.limit.toString());
+                if (params.search) queryParams.append('search', params.search);
+                if (params.searchBy) queryParams.append('searchBy', params.searchBy);
+                if (params.sort) queryParams.append('sort', params.sort);
+                if (params.order) queryParams.append('order', params.order);
+                if (params.categoryId) queryParams.append('categoryId', params.categoryId);
+                if (params.locationId) queryParams.append('locationId', params.locationId);
+
+                const queryString = queryParams.toString();
+                return `/facility${queryString ? `?${queryString}` : ''}`;
             },
-            providesTags: ["Facilities"],
+            providesTags: ["Facility"],
         }),
 
-        // GET /api/facility/{id} - get facility by ID
+        // GET /api/facility/{id}
         getFacilityById: builder.query<SuccessResponse<Facility>, string>({
             query: (id) => `/facility/${id}`,
-            providesTags: ["Facilities"],
+            providesTags: ["Facility"],
         }),
 
-        // GET /api/facility/parent/{parentId} - get facilities by parent (location) ID
-        getFacilitiesByParentId: builder.query<SuccessResponse<FacilityResponse>, string>({
+        // GET /api/facility/parent/{parentId}
+        getFacilitiesByParentId: builder.query<
+            SuccessResponse<FacilityResponse>,
+            string
+        >({
             query: (parentId) => `/facility/parent/${parentId}`,
-            providesTags: ["Facilities"],
+            providesTags: ["Facility"],
         }),
 
-        // POST /api/facility - create facility
-        addFacility: builder.mutation<SuccessResponse<Facility>, Facility>({
+        // POST /api/facility
+        addFacility: builder.mutation<
+            SuccessResponse<Facility>,
+            CreateFacilityDto
+        >({
             query: (data) => ({
                 url: "/facility",
                 method: "POST",
                 body: data,
+                credentials: "include",
             }),
-            invalidatesTags: ["Facilities"],
+            invalidatesTags: ["Facility"],
         }),
 
-        // PATCH /api/facility/{id} - update facility
-        updateFacility: builder.mutation<SuccessResponse<Facility>, { id: string; data: Facility }>({
+        // PATCH /api/facility/{id}
+        updateFacility: builder.mutation<
+            SuccessResponse<Facility>,
+            { id: string; data: UpdateFacilityDto }
+        >({
             query: ({ id, data }) => ({
                 url: `/facility/${id}`,
                 method: "PATCH",
                 body: data,
+                credentials: "include",
             }),
-            invalidatesTags: ["Facilities"],
+            invalidatesTags: ["Facility"],
         }),
 
-        // DELETE /api/facility/{id} - delete facility
+        // DELETE /api/facility/{id}
         deleteFacility: builder.mutation<SuccessResponse<any>, string>({
             query: (id) => ({
                 url: `/facility/${id}`,
                 method: "DELETE",
+                credentials: "include",
             }),
-            invalidatesTags: ["Facilities"],
+            invalidatesTags: ["Facility"],
         }),
     }),
 });

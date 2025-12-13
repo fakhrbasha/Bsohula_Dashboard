@@ -1,7 +1,3 @@
-import {
-  Facility,
-  useDeleteFacilityMutation,
-} from '@/redux/features/facility/facilityApi';
 import { ColumnDef } from '@tanstack/react-table';
 import {
   MoreVertical,
@@ -9,13 +5,18 @@ import {
   Trash2,
   Loader2,
   MapPin,
+  Tag,
+  Star,
   Phone,
   Globe,
-  Star,
-  Tag,
-  Image as ImageIcon,
+  MapPinned,
 } from 'lucide-react';
 import { useState } from 'react';
+import {
+  useDeleteFacilityMutation,
+  Facility,
+} from '@/redux/features/facility/facilityApi';
+
 interface ActionsProps {
   facilityId: string;
   onEdit: (id: string) => void;
@@ -43,6 +44,7 @@ const ActionsCell = ({ facilityId, onEdit }: ActionsProps) => {
 
   return (
     <div className="relative">
+      {/* Dropdown Button */}
       <button
         onClick={() => setShowDropdown(!showDropdown)}
         className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -50,6 +52,7 @@ const ActionsCell = ({ facilityId, onEdit }: ActionsProps) => {
         <MoreVertical className="h-4 w-4" />
       </button>
 
+      {/* Dropdown Menu */}
       {showDropdown && (
         <>
           <div
@@ -81,6 +84,7 @@ const ActionsCell = ({ facilityId, onEdit }: ActionsProps) => {
         </>
       )}
 
+      {/* Delete Dialog */}
       {showDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
@@ -117,29 +121,19 @@ const ActionsCell = ({ facilityId, onEdit }: ActionsProps) => {
 
 export const facilityColumns: ColumnDef<Facility>[] = [
   {
-    accessorKey: 'images',
-    header: 'الصورة',
+    accessorKey: 'map_url',
+    header: 'الخريطة',
     cell: ({ row }) => {
-      const images = row.getValue('images') as string[] | undefined;
-      const imageUrl = images && images.length > 0 ? images[0] : null;
-
-      if (imageUrl) {
-        return (
-          <img
-            src={imageUrl}
-            alt="Facility"
-            className="w-16 h-16 rounded-lg object-cover border-2 border-gray-100"
-            onError={(e) => {
-              e.currentTarget.src = 'https://via.placeholder.com/64?text=صورة';
-            }}
-          />
-        );
-      }
-
+      const mapUrl = row.getValue('map_url') as string;
       return (
-        <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border-2 border-gray-200">
-          <ImageIcon className="w-6 h-6 text-gray-400" />
-        </div>
+        <a
+          href={mapUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center w-12 h-12 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors border-2 border-blue-100"
+        >
+          <MapPin className="w-6 h-6 text-blue-600" />
+        </a>
       );
     },
   },
@@ -156,39 +150,39 @@ export const facilityColumns: ColumnDef<Facility>[] = [
       );
     },
   },
-  // {
-  //   accessorKey: 'categoryId',
-  //   header: 'التصنيف',
-  //   cell: ({ row }) => {
-  //     const categoryId = row.getValue('categoryId') as string;
-  //     return (
-  //       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-  //         {categoryId}
-  //       </span>
-  //     );
-  //   },
-  // },
-  // {
-  //   accessorKey: 'locationId',
-  //   header: 'الموقع',
-  //   cell: ({ row }) => {
-  //     const locationId = row.getValue('locationId') as string;
-  //     return (
-  //       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-  //         {locationId}dd
-  //       </span>
-  //     );
-  //   },
-  // },
+  {
+    accessorKey: 'description',
+    header: 'الوصف',
+    cell: ({ row }) => {
+      const description = row.getValue('description') as
+        | {
+            en: string;
+            ar: string;
+          }
+        | undefined;
+
+      return (
+        <div className="max-w-xs">
+          <p className="text-sm text-gray-700 truncate">
+            {description?.ar || 'لا يوجد وصف'}
+          </p>
+          <p className="text-xs text-gray-500 truncate">
+            {description?.en || 'No description'}
+          </p>
+        </div>
+      );
+    },
+  },
   {
     accessorKey: 'address',
     header: 'العنوان',
     cell: ({ row }) => {
-      const address = row.getValue('address') as string | undefined;
-      return address ? (
-        <p className="text-sm text-gray-700 max-w-xs truncate">{address}</p>
-      ) : (
-        <span className="text-gray-400 text-sm">لا يوجد</span>
+      const address = row.getValue('address') as string;
+      return (
+        <div className="flex items-center gap-2">
+          <MapPinned className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-700">{address}</span>
+        </div>
       );
     },
   },
@@ -196,17 +190,12 @@ export const facilityColumns: ColumnDef<Facility>[] = [
     accessorKey: 'phone',
     header: 'الهاتف',
     cell: ({ row }) => {
-      const phone = row.getValue('phone') as string | undefined;
-      return phone ? (
-        <a
-          href={`tel:${phone}`}
-          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
-        >
-          <Phone className="w-3 h-3" />
-          {phone}
-        </a>
-      ) : (
-        <span className="text-gray-400 text-sm">لا يوجد</span>
+      const phone = row.getValue('phone') as string;
+      return (
+        <div className="flex items-center gap-2">
+          <Phone className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-700 dir-ltr">{phone}</span>
+        </div>
       );
     },
   },
@@ -214,19 +203,20 @@ export const facilityColumns: ColumnDef<Facility>[] = [
     accessorKey: 'website',
     header: 'الموقع الإلكتروني',
     cell: ({ row }) => {
-      const website = row.getValue('website') as string | undefined;
-      return website ? (
+      const website = row.getValue('website') as string;
+      if (!website) {
+        return <span className="text-gray-400 text-sm">لا يوجد</span>;
+      }
+      return (
         <a
           href={website}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
         >
-          <Globe className="w-3 h-3" />
-          رابط
+          <Globe className="w-4 h-4" />
+          زيارة الموقع
         </a>
-      ) : (
-        <span className="text-gray-400 text-sm">لا يوجد</span>
       );
     },
   },
@@ -234,16 +224,14 @@ export const facilityColumns: ColumnDef<Facility>[] = [
     accessorKey: 'avgRating',
     header: 'التقييم',
     cell: ({ row }) => {
-      const rating = row.getValue('avgRating') as number | undefined;
-      return rating ? (
+      const rating = row.getValue('avgRating') as number;
+      return (
         <div className="flex items-center gap-1">
           <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
           <span className="text-sm font-semibold text-gray-700">
             {rating.toFixed(1)}
           </span>
         </div>
-      ) : (
-        <span className="text-gray-400 text-sm">لا يوجد</span>
       );
     },
   },
@@ -251,19 +239,23 @@ export const facilityColumns: ColumnDef<Facility>[] = [
     accessorKey: 'tags',
     header: 'الوسوم',
     cell: ({ row }) => {
-      const tags = row.getValue('tags') as string[] | undefined;
+      const tags = row.original.tags;
       if (!tags || tags.length === 0) {
         return <span className="text-gray-400 text-sm">لا يوجد</span>;
       }
       return (
         <div className="flex flex-wrap gap-1">
-          {tags.slice(0, 2).map((tag, index) => (
+          {tags.slice(0, 2).map((tag) => (
             <span
-              key={index}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+              key={tag._id}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
+              style={{
+                backgroundColor: `${tag.colorHex}20`,
+                color: tag.colorHex,
+              }}
             >
               <Tag className="w-3 h-3" />
-              {tag}
+              {tag.displayName.ar}
             </span>
           ))}
           {tags.length > 2 && (
@@ -276,29 +268,11 @@ export const facilityColumns: ColumnDef<Facility>[] = [
     },
   },
   {
-    accessorKey: 'status',
-    header: 'الحالة',
-    cell: ({ row }) => {
-      const status = row.getValue('status') as boolean | undefined;
-      return (
-        <div className="text-center">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}
-          >
-            {status ? 'نشط' : 'غير نشط'}
-          </span>
-        </div>
-      );
-    },
-  },
-  {
     accessorKey: 'createdAt',
     header: 'تاريخ الإنشاء',
     cell: ({ row }) => {
-      const createdAt = row.getValue('createdAt') as string | undefined;
-      return createdAt ? (
+      const createdAt = row.getValue('createdAt') as string;
+      return (
         <div className="text-sm text-gray-600">
           {new Date(createdAt).toLocaleDateString('ar-EG', {
             year: 'numeric',
@@ -306,8 +280,6 @@ export const facilityColumns: ColumnDef<Facility>[] = [
             day: 'numeric',
           })}
         </div>
-      ) : (
-        <span className="text-gray-400 text-sm">لا يوجد</span>
       );
     },
   },
@@ -315,7 +287,7 @@ export const facilityColumns: ColumnDef<Facility>[] = [
     id: 'actions',
     header: 'الإجراءات',
     cell: ({ row }) => {
-      const facilityId = row.original._id || '';
+      const facilityId = row.original._id;
       const onEdit = (row.original as any).onEdit || (() => {});
       return <ActionsCell facilityId={facilityId} onEdit={onEdit} />;
     },
